@@ -45,6 +45,28 @@ void set_game_language(int language) {
     g_game_language.store(language, std::memory_order_relaxed);
 }
 
+// The game-language selectors and their persisted IDs, as LanguageCodes (strings packed into an u64).
+// Simplified/Traditional Chinese use the [4.0.0+] codes zh-Hans/zh-Hant: SMBW's text-language table
+// (Mals/CNzh, Mals/TWzh) matches those and doesn't accept the legacy zh-CN/zh-TW (verified in-game:
+// GetDesiredLanguage zh-CN fell back to Japanese, zh-Hans loaded the CNzh text).
+constexpr const char* kGameLanguageCodes[] = {"en-US", "it", "de", "fr", "pt-BR", "es", "ko", "ja", "nl", "ru", "zh-Hans", "zh-Hant"};
+
+const char* game_language_name() {
+    const int language = g_game_language.load(std::memory_order_relaxed);
+    return kGameLanguageCodes[language >= 0 && language < int(std::size(kGameLanguageCodes)) ? language : 0];
+}
+
+int game_language_index() {
+    return g_game_language.load(std::memory_order_relaxed);
+}
+
+uint64_t game_language_code() {
+    uint64_t code = 0;
+    const char* selected = game_language_name();
+    std::memcpy(&code, selected, std::strlen(selected));
+    return code;
+}
+
 namespace {
 
 constexpr uint32_t kAmNoMessage = 0x680;  // am error 3
@@ -169,18 +191,12 @@ std::shared_ptr<Service> application_functions() {
         };
         s.cmds[20] = [](IpcCtx& c) { c.push<uint64_t>(0); return 0u; };  // EnsureSaveData
         s.cmds[21] = [](IpcCtx& c) {                                      // GetDesiredLanguage
-            uint64_t code = 0;
-            // This order matches the game-language selectors and their persisted IDs.
-            static constexpr const char* codes[] = {"en-US", "it", "de", "fr", "pt-BR", "es", "ko", "ja", "nl", "ru", "zh-CN", "zh-TW"};
-            const int language = g_game_language.load(std::memory_order_relaxed);
-            const char* selected = codes[language >= 0 && language < int(std::size(codes)) ? language : 0];
-            std::memcpy(&code, selected, std::strlen(selected));
             static int logged_language = -1;
-            if (logged_language != language) {
-                log("oe: GetDesiredLanguage -> %s", selected);
-                logged_language = language;
+            if (logged_language != game_language_index()) {
+                log("oe: GetDesiredLanguage -> %s", game_language_name());
+                logged_language = game_language_index();
             }
-            c.push<uint64_t>(code);
+            c.push<uint64_t>(game_language_code());
             return 0u;
         };
         s.cmds[40] = [](IpcCtx& c) { c.push<uint8_t>(0); return 0u; };  // NotifyRunning
