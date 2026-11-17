@@ -1,0 +1,43 @@
+name: Build Linux runtime
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci-linux-build]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build clang lld glslang-tools libvulkan-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+            libxfixes-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev \
+            libasound2-dev libpulse-dev libudev-dev
+
+      - name: Configure
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_SCAN_FOR_MODULES=OFF \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++
+
+      - name: Build wonder
+        run: ninja -C build wonder
+
+      - name: Show build result
+        run: |
+          ls -la build/wonder
+          file build/wonder
+          ldd build/wonder || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wonder-linux
+          path: build/wonder
