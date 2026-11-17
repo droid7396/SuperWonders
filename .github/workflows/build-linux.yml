@@ -23,6 +23,7 @@ jobs:
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
+            -DNX_GAME=wonder \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_SCAN_FOR_MODULES=OFF \
             -DCMAKE_C_COMPILER=clang \
