@@ -24,6 +24,7 @@ jobs:
         run: |
           cmake -S . -B build -G Ninja \
             -DNX_GAME=wonder \
+            -DNX_SDL_BUNDLED=ON \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_CXX_SCAN_FOR_MODULES=OFF \
             -DCMAKE_C_COMPILER=clang \
