@@ -17,7 +17,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             cmake ninja-build clang lld glslang-tools libvulkan-dev \
             libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
-            libxfixes-dev libxss-dev libxdamage-dev libxcb1-dev \
+            libxfixes-dev libxss-dev libxdamage-dev libxcb1-dev libxtst-dev libxrender-dev \
             libwayland-dev libxkbcommon-dev libegl1-mesa-dev \
             libasound2-dev libpulse-dev libudev-dev
 
